@@ -16,7 +16,7 @@ const adjacent_list = {1: [2, 5],
               15: [11, 14, 16],
               16: [12, 15]};
 
-const socket = io('http://192.168.4.121:5000');
+const socket = io('http://192.168.9.116:5000');
 let currentPlayerId; // Variable to store the current player's ID
 let game_id;
 let player_position;
@@ -90,6 +90,7 @@ function updateGrid(new_state, position) {
 
 // Handle move update event
 socket.on('move_update', (data) => {
+
     console.log('Move successful', data.new_state);
     if (data.new_state.player_data.player_id == currentPlayerId) {
         console.log('Move successful', data.new_state);
@@ -110,9 +111,20 @@ socket.on('move_update', (data) => {
         player_position = position[0] * 4 + position[1];
     }
     else{
-        updateGrid(data.new_state, data.new_state.player_data.position);
-        position = data.new_state.player_data.position;
-        other_player_position = position[0] * 4 + position[1];
+        if (other_player_position != null) {
+            updateGrid(data.new_state, data.new_state.player_data.position);
+            position = data.new_state.player_data.position;
+            other_player_position = position[0] * 4 + position[1];
+        }
+        else {
+            other_player_position = data.new_state.player_data.position;
+            // player2_position = data.players[1].position;
+            other_player_position = other_player_position[0] * 4 + other_player_position[1];
+            // player2_position = player2_position[0] * 4 + player2_position[1];
+            player_box = document.getElementById('grid-item' + other_player_position + '-player');
+            // player2_box = document.getElementById('grid-item' + player2_position + '-player');
+            player_box.innerHTML = 'Player';
+        }
     }
 });
 
@@ -139,16 +151,6 @@ socket.on('game_state_update', (data) => {
         player_box.innerHTML = 'You';
         // player2_box.innerHTML = 'P2';
     }
-    else {
-        console.log('other_player', data);
-        other_player_position = data.player_data.position;
-        // player2_position = data.players[1].position;
-        other_player_position = other_player_position[0] * 4 + other_player_position[1];
-        // player2_position = player2_position[0] * 4 + player2_position[1];
-        player_box = document.getElementById('grid-item' + other_player_position + '-player');
-        // player2_box = document.getElementById('grid-item' + player2_position + '-player');
-        player_box.innerHTML = 'Player';
-    }
 });
 
 // Handle game state error event
@@ -157,25 +159,10 @@ socket.on('game_state_error', (error) => {
     // Handle error feedback...
 });
 
-socket.on('player_joined', (data) => {
-    console.log(data.message);
-    // Update the UI to reflect that a new player has joined.
-});
 
-socket.on('waiting_for_opponent', (data) => {
-    console.log(data.message);
-    // Update the UI to show that the player is waiting for an opponent.
-});
-
-socket.on('join_error', (error) => {
-    console.error(error.error);
-    // Display an error message to the user.
-});
-
-
-socket.on('game_state_update', (data) => {
-    updateGrid(data.new_state); // Example function to update the UI based on the new game state
-});
+// socket.on('game_state_update', (data) => {
+//     updateGrid(data.new_state); // Example function to update the UI based on the new game state
+// });
 
 document.getElementById('startGameBtn').addEventListener('click', function() {
     console.log("Start Game button clicked. Emitting 'play_game' event.");

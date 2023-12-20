@@ -22,7 +22,6 @@ PLAYERS_TO_START = 2  # Define minimum number of players to start a game
 @socketio.on('connect')
 def handle_connect():
     print("Client connected")
-    print(request.sid)
 
 
 @socketio.on('disconnect')
@@ -46,13 +45,12 @@ def handle_move(data):
             if player_id in [p.player_id for p in instance.players]:
                 game_instance_id = id
                 break
-        
         if game_instance_id:
             # Handle move logic and emit updates to clients in the same game instance
             WumpusGame.get_game(game_instance_id).move_player(player_id, tuple(new_position))
             game_state = WumpusGame.get_game(game_instance_id).get_player_pov_game_state(player_id)
             for player in WumpusGame.get_game(game_instance_id).players:
-                socketio.emit('move_update', {"message": "Move successful", "new_state": game_state})
+                socketio.emit('move_update', {"message": "Move successful", "new_state": game_state, "game_id": game_instance_id}, room=player.player_id)
         else:
             raise Exception("Player not found in any game instance")
     
@@ -116,7 +114,7 @@ def handle_game_state(data):
         if game_instance_id:
             # print(f"game state with id {game_instance_id} type {type(WumpusGame.get_game(game_instance_id))}")
             game_state = WumpusGame.get_game(game_instance_id).get_player_pov_game_state(player_id)
-            socketio.emit('game_state_update', game_state)
+            socketio.emit('game_state_update', game_state, room=player_id)
         else:
             raise Exception("Player not found in any game instance")
     
@@ -133,17 +131,7 @@ def game():
     
     return render_template('index.html')  # Added ".html"
 
-# @app.route('/createlobby.html')
-# def createlobby():
-#     return render_template('createlobby.html')
 
-# @app.route('/joinlobby.html')
-# def joinlobby():
-#     return render_template('joinlobby.html')
-
-# @app.route('/startgame.html')
-# def startgame():
-#     return render_template('startgame.html')
 
 @app.route('/leaderboard.html')
 def leaderboard():
