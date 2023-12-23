@@ -21,7 +21,7 @@ PLAYERS_TO_START = 2  # Define minimum number of players to start a game
 
 @socketio.on('connect')
 def handle_connect():
-    print("Client connected")
+    print(f"Client {request.sid} connected")
 
 
 @socketio.on('disconnect')
@@ -39,6 +39,7 @@ def handle_move(data):
     try:
         player_id = data['player_id']
         new_position = data['new_position']
+        print(f"Client {player_id} requests move to {new_position}")
         # Find the game instance that the player belongs to
         game_instance_id = None
         for id, instance in game_instances.items():
@@ -66,7 +67,7 @@ def find_available_game_instance():
 
 @socketio.on('play_game')
 def handle_play_game():
-    #print("Received 'play_game' event from client")
+    print(f"Client {request.sid} requests play game")
     find = find_available_game_instance()
 
     #player = Player(player_id, "Player Name")
@@ -102,17 +103,12 @@ def handle_game_state(data):
     try:
         player_id = data['player_id']
         game_instance_id = None
-        #print(player_id)
         for id, instance in game_instances.items():
-            # print(22)
 
-            #print([p.player_id for p in instance.players])
             if player_id in [p.player_id for p in instance.players]:
                 game_instance_id = id
                 break
-        # print(f"game state with id {game_instance_id} type {type(WumpusGame.get_game(game_instance_id))}")
         if game_instance_id:
-            # print(f"game state with id {game_instance_id} type {type(WumpusGame.get_game(game_instance_id))}")
             game_state = WumpusGame.get_game(game_instance_id).get_player_pov_game_state(player_id)
             socketio.emit('game_state_update', game_state, room=player_id)
         else:
@@ -128,46 +124,8 @@ def main_menu():
 
 @app.route('/game')
 def game():
-    
     return render_template('index.html')  # Added ".html"
 
-
-
-@app.route('/leaderboard.html')
-def leaderboard():
-    return render_template('leaderboard.html')
-
-@app.route('/create-lobby', methods=['POST'])
-def create_lobby():
-    data = request.get_json()
-    lobby_name = data.get('name')
-
-    if lobby_name in WumpusGame.games:
-        return jsonify({"error": "Lobby already exists"}), 400
-
-    # Create new game instance with the lobby name
-    WumpusGame.create_new_game(lobby_name)
-    game_instances[lobby_name] = WumpusGame.get_game(lobby_name)
-    return jsonify({"message": "Lobby created successfully", "lobby_id": lobby_name})
-
-@app.route('/join-lobby', methods=['POST'])
-def join_lobby():
-    data = request.get_json()
-    lobby_name = data.get('lobbyID')
-
-    # Check if lobby exists
-    game = game_instances.get(lobby_name)
-    if game is None:
-        return jsonify({"error": "Lobby not found"}), 404
-
-    # Add player to the game
-    player_id = generate_unique_id()  # Generate unique player ID
-    player_name = "Player Name"  # Placeholder for player name
-    try:
-        game.add_player(player_id, player_name)
-        return jsonify({"message": "Joined lobby successfully", "lobby_id": lobby_name, "player_id": player_id})
-    except ValueError as e:
-        return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)

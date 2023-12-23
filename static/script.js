@@ -1,4 +1,3 @@
-// Store the current player position (initially set to box 7)
 const adjacent_list = {1: [2, 5],
               2: [1, 3, 6],
               3: [2, 4, 7],
@@ -75,7 +74,6 @@ function updateGrid(new_state, position) {
         if (effect_box.innerHTML == ""){
             effect_box.innerHTML = effects;
         }
-        console.log('grid-item' + player_position + '-player');
         previos_box.innerHTML = '';
         new_box = document.getElementById('grid-item' + (position[0] * 4 + position[1]) + '-player');
         new_box.innerHTML = 'You';
@@ -90,13 +88,13 @@ function updateGrid(new_state, position) {
 
 // Handle move update event
 socket.on('move_update', (data) => {
-
-    console.log('Move successful', data.new_state);
     if (data.new_state.player_data.player_id == currentPlayerId) {
-        console.log('Move successful', data.new_state);
         // Update your game UI based on the new state...
-        if (data.new_state.game_over) {
+        if (data.new_state.game_over && data.new_state.winner == currentPlayerId) {
             alert('YOU WIN!');
+        }
+        else if (data.new_state.game_over && data.new_state.winner != currentPlayerId) {
+            alert('YOU LOSE!');
         }
         if (!data.new_state.player_data.is_alive) {
             alert('YOU LOSE!');
@@ -118,11 +116,8 @@ socket.on('move_update', (data) => {
         }
         else {
             other_player_position = data.new_state.player_data.position;
-            // player2_position = data.players[1].position;
             other_player_position = other_player_position[0] * 4 + other_player_position[1];
-            // player2_position = player2_position[0] * 4 + player2_position[1];
             player_box = document.getElementById('grid-item' + other_player_position + '-player');
-            // player2_box = document.getElementById('grid-item' + player2_position + '-player');
             player_box.innerHTML = 'Player';
         }
     }
@@ -134,22 +129,14 @@ socket.on('move_error', (error) => {
     // Handle error feedback...
 });
 
-// Example of requesting the game state
-// socket.emit('game_state');
-
 // Handle game state update event
 socket.on('game_state_update', (data) => {
     // Update your game UI based on the new state...
     if (data.player_data.player_id == currentPlayerId) {
-        console.log('you player', data);
         player_position = data.player_data.position;
-        // player2_position = data.players[1].position;
         player_position = player_position[0] * 4 + player_position[1];
-        // player2_position = player2_position[0] * 4 + player2_position[1];
         player_box = document.getElementById('grid-item' + player_position + '-player');
-        // player2_box = document.getElementById('grid-item' + player2_position + '-player');
         player_box.innerHTML = 'You';
-        // player2_box.innerHTML = 'P2';
     }
 });
 
@@ -160,19 +147,12 @@ socket.on('game_state_error', (error) => {
 });
 
 
-// socket.on('game_state_update', (data) => {
-//     updateGrid(data.new_state); // Example function to update the UI based on the new game state
-// });
-
 document.getElementById('startGameBtn').addEventListener('click', function() {
     console.log("Start Game button clicked. Emitting 'play_game' event.");
     socket.emit('play_game');
 });
 
 socket.on('game_started', (data) => {
-    console.log(data);
-       // Here, you can request the player ID and the game state
-    // socket.emit('request_player_id');
     currentPlayerId = data.player_id
     console.log("Requesting player ID and game state.");
     socket.emit('game_state', {player_id: currentPlayerId});

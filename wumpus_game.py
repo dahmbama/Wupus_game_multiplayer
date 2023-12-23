@@ -82,11 +82,9 @@ class WumpusGame:
 
     def check_start_conditions(self):
         """Check if the game meets the conditions to start."""
-        #print(self.players, self.game_started)
         if len(self.players) == 2 and not self.game_started:
             self.place_treasure_equidistant()
             self.start_game()
-            print("Should return true")
             self.start_GAME = True
         else:
             self.start_GAME = False
@@ -94,7 +92,6 @@ class WumpusGame:
     def start_game(self):
         """Start the game."""
         self.game_started = True
-        #print(f"Game {self.game_id} started with {len(self.players)} players.")
 
     def get_player_pov_game_state(self, player_id):
         """Return the game state from the perspective of the specified player."""
@@ -149,7 +146,6 @@ class WumpusGame:
                     self.pits.append((x, y))
                 elif item == 'W':
                     self.wumpuses.append((x, y))
-        #print(f"Placed {item}: {self.pits if item == 'PIT' else self.wumpuses}")
 
     def is_reachable(self, start, end):
         """Check if 'end' is reachable from 'start' without passing through hazards. Use BFS"""
@@ -221,7 +217,6 @@ class WumpusGame:
 
     def check_interactions(self, player):
         """Check for interactions with treasure, Wumpuses, or pits."""
-        #print(player.position)
         if player.position == self.treasure_position:
             self.game_over = True
             self.winner = player.player_id
@@ -242,7 +237,6 @@ class WumpusGame:
             if pos in self.pits:
                 cues['breeze'] = True
         player.update_environmental_cues(cues)
-        #print(self.grid)
 
 
     def is_game_over(self):

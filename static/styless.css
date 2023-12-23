@@ -35,6 +35,12 @@ a {
 
 .start-game-btn {
     background-color: #4CAF50;
+    color: #fff;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    display: inline-block;
 }
 
 .leaderboard-btn {
@@ -69,7 +75,7 @@ a {
     display: inline-block;
 }
 
-.create-lobby-btn1:hover {
+.start-game-btn:hover {
     background-color: #27ae60;
 }
 
